@@ -3,172 +3,187 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRUD App</title>
+  <title>CRUD Operations</title>
   <style>
     body {
-        font-family: Arial, sans-serif;
-        margin: 20px;
-        color: rgb(32, 31, 31);
-      }
-  
-      table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 20px;
-      }
-  
-      th, td {
-        border: 1px solid #6e6a6a;
-        padding: 8px;
-        text-align: left;
-      }
-  
-      th {
-        background-color: #b9ddc3;
-      }
-  
-      form {
-        margin-top: 20px;
-      }
-  
-      button {
-          width: 8vw;
-          height: 4vh;
-          border: #6e6a6a;
-          border-color: black;
-          background-color: none;
-      }
-  
-      button:hover {
-          font-weight: 600;
-          background-color: aqua;
-          box-shadow: 0 0 0.5em 0.1em rgb(131, 131, 131);
-      }
-  
-      #d-box {
-          width: 60vw;
-          padding: 3em;
-          margin: auto;
-          background-color: rgb(0, 255, 174);
-          box-shadow: 0 0 0.5em 0.1em rgb(131, 131, 131);
-  
-      }
-      input {
-        margin: 5px;
-      }
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      background-color: #f4f4f4;
+    }
 
-  
-  
+    .container {
+      max-width: 800px;
+      width: 100%;
+      padding: 20px;
+      background-color: #fff;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    table {
+      width: 100%;
+      margin-top: 20px;
+      border-collapse: collapse;
+    }
+
+    table, th, td {
+      border: 1px solid #ddd;
+    }
+
+    th, td {
+      padding: 10px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    button {
+      padding: 10px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
   </style>
 </head>
 <body>
-    <div id="d-box">
-        <center>
-            <h1>REST API with CURD operations</h1>
-        </center>
-        <h2>Items</h2>
-        <table id="itemsTable">
-            <thead>
-            <tr>
-                <th>No</th>
-                <th>Name</th>
-                <th>Index</th>
-                <th>Reg_No</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody></tbody>
-        </table>
 
-        <h2>Add New Item</h2>
-        <form id="addItemForm">
-            <label for="itemName">Name:</label>
-            <input type="text" id="itemName" name="itemName" required>
+<div class="container">
+  <h2>CRUD Operations</h2>
 
-            <input type="hidden" id="itemNo" name="itemNo">
-            <label for="itemIndex">Index:</label>
-            <input type="text" id="itemIndex" name="itemIndex" required>
-            <label for="itemRegNo">Reg_No:</label>
-            <input type="text" id="itemRegNo" name="itemRegNo" required>
-            <button type="submit">Add Item</button>
-        </form>
-    </div>
+  <!-- Form for creating new item -->
+  <form id="addItemForm">
+    <label for="name">Name:</label>
+    <input type="text" id="name" required>
+    <label for="index">Index:</label>
+    <input type="text" id="index" required>
+    <label for="Reg_No">Reg No:</label>
+    <input type="text" id="Reg_No" required>
+    <button type="button" onclick="addItem()">Add Item</button>
+  </form>
 
- 
+  <!-- Table to display items -->
+  <table>
+    <thead>
+      <tr>
+        <th>No</th>
+        <th>Name</th>
+        <th>Index</th>
+        <th>Reg No</th>
+        <th>Action</th>
+      </tr>
+    </thead>
+    <tbody id="itemTableBody"></tbody>
+  </table>
+</div>
 
+<script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script>
-    let currentNo = 1; 
-  
-    document.addEventListener('DOMContentLoaded', fetchItems);
-  
-    function fetchItems() {
-      fetch('http://localhost:3000/items')
-        .then(response => response.json())
-        .then(items => {
-          const itemsTableBody = document.querySelector('#itemsTable tbody');
-          itemsTableBody.innerHTML = '';
-  
-          items.forEach(item => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-              <td>${item.No}</td>
-              <td>${item.name}</td>
-              <td>${item.Index}</td>
-              <td>${item.Reg_No}</td>
-              <td>
-                <button onclick="editItem(${item.id})">Edit</button>
-                <button onclick="deleteItem(${item.id})">Delete</button>
-              </td>
-            `;
-            itemsTableBody.appendChild(row);
-          });
-  
+  document.addEventListener('DOMContentLoaded', function () {
+    // Load items on page load
+    loadItems();
 
-          currentNo = items.length + 1;
-        })
-        .catch(error => console.error('Error fetching items:', error));
-    }
-  
+    // Add event listener to the form
     document.getElementById('addItemForm').addEventListener('submit', function (event) {
       event.preventDefault();
-  
-      const itemName = document.getElementById('itemName').value;
-      const itemIndex = document.getElementById('itemIndex').value;
-      const itemRegNo = document.getElementById('itemRegNo').value;
-  
-      fetch('http://localhost:3000/items', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          No: currentNo,
-          name: itemName,
-          Index: itemIndex,
-          Reg_No: itemRegNo
-        }),
-      })
-        .then(response => response.json())
-        .then(() => {
-          fetchItems();
-          document.getElementById('itemName').value = '';
-          document.getElementById('itemIndex').value = '';
-          document.getElementById('itemRegNo').value = '';
-
-          currentNo++;
-        })
-        .catch(error => console.error('Error adding item:', error));
     });
-  
-    function deleteItem(itemId) {
-        fetch(`http://localhost:3000/items/${itemId}`, {
-          method: 'DELETE',
-        })
-          .then(() => fetchItems())  
-          .catch(error => console.error('Error deleting item:', error));
-      }
+  });
 
-  </script>
-  
+  // Function to load items from the server
+  function loadItems() {
+    axios.get('http://localhost:3000/items')
+      .then(function (response) {
+        displayItems(response.data);
+      })
+      .catch(function (error) {
+        console.error('Error loading items', error);
+      });
+  }
+
+  // Function to display items in the table
+  function displayItems(items) {
+    const tableBody = document.getElementById('itemTableBody');
+    tableBody.innerHTML = '';
+
+    items.forEach(function (item) {
+      const row = tableBody.insertRow();
+
+      // Add cells
+      const cellNo = row.insertCell(0);
+      const cellName = row.insertCell(1);
+      const cellIndex = row.insertCell(2);
+      const cellRegNo = row.insertCell(3);
+      const cellAction = row.insertCell(4);
+
+      // Fill cells with data
+      cellNo.innerHTML = item.No;
+      cellName.innerHTML = item.name;
+      cellIndex.innerHTML = item.index;
+      cellRegNo.innerHTML = item.Reg_No;
+
+      // Add buttons for actions
+      const editButton = document.createElement('button');
+      editButton.textContent = 'Edit';
+      editButton.onclick = function () {
+        editItem(item.No);
+      };
+
+      const deleteButton = document.createElement('button');
+      deleteButton.textContent = 'Delete';
+      deleteButton.onclick = function () {
+        deleteItem(item.No);
+      };
+
+      cellAction.appendChild(editButton);
+      cellAction.appendChild(deleteButton);
+    });
+  }
+
+  // Function to add a new item
+  function addItem() {
+    const name = document.getElementById('name').value;
+    const index = document.getElementById('index').value;
+    const Reg_No = document.getElementById('Reg_No').value;
+
+    axios.post('http://localhost:3000/items', { name, index, Reg_No })
+      .then(function (response) {
+        loadItems();
+        // Clear the form
+        document.getElementById('name').value = '';
+        document.getElementById('index').value = '';
+        document.getElementById('Reg_No').value = '';
+      })
+      .catch(function (error) {
+        console.error('Error adding item', error);
+      });
+  }
+
+  // Function to edit an item
+  function editItem(No) {
+    // You can implement the edit functionality here
+    console.log('Edit item with No:', No);
+  }
+
+  // Function to delete an item
+  function deleteItem(No) {
+    axios.delete(`http://localhost:3000/items/${No}`)
+      .then(function (response) {
+        loadItems();
+      })
+      .catch(function (error) {
+        console.error('Error deleting item', error);
+      });
+  }
+</script>
 </body>
 </html>

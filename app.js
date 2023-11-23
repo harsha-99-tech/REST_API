@@ -9,8 +9,8 @@ app.use(bodyParser.json());
 
 // Sample data
 let Data = [
-  { id: 1, name: 'data 1' },
-  { id: 2, name: 'data 2' },
+  { No: 1, name: 'data 1', index: 'ITT/2019/000', Reg_No: 0001 },
+  { No: 2, name: 'data 2', index: 'ITT/2019/001', Reg_No: 0002 },
 ];
 
 // Get all items
@@ -18,10 +18,10 @@ app.get('/items', (req, res) => {
   res.json(Data);
 });
 
-// Get an item by ID
-app.get('/items/:id', (req, res) => {
-  const itemId = parseInt(req.params.id);
-  const item = Data.find(item => item.id === itemId);
+// Get an item by No
+app.get('/items/:No', (req, res) => {
+  const itemNo = parseInt(req.params.No);
+  const item = Data.find(item => item.No === itemNo);
 
   if (!item) {
     return res.status(404).json({ error: 'Item not found' });
@@ -33,17 +33,17 @@ app.get('/items/:id', (req, res) => {
 // Create a new item
 app.post('/items', (req, res) => {
   const newItem = req.body;
-  newItem.id = Data.length + 1;
+  newItem.No = Data.length + 1; // Use No instead of id
   Data.push(newItem);
   res.status(201).json(newItem);
 });
 
-// Update an item by ID
-app.put('/items/:id', (req, res) => {
-  const itemId = parseInt(req.params.id);
+// Update an item by No
+app.put('/items/:No', (req, res) => {
+  const itemNo = parseInt(req.params.No);
   const updatedItem = req.body;
 
-  const index = Data.findIndex(item => item.id === itemId);
+  const index = Data.findIndex(item => item.No === itemNo);
 
   if (index !== -1) {
     Data[index] = { ...Data[index], ...updatedItem };
@@ -53,10 +53,10 @@ app.put('/items/:id', (req, res) => {
   }
 });
 
-// Delete an item by ID
-app.delete('/items/:id', (req, res) => {
-  const itemId = parseInt(req.params.id);
-  Data = Data.filter(item => item.id !== itemId);
+// Delete an item by No
+app.delete('/items/:No', (req, res) => {
+  const itemNo = parseInt(req.params.No);
+  Data = Data.filter(item => item.No !== itemNo);
   res.json({ message: 'Item deleted successfully' });
 });
 
