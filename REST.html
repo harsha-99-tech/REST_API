@@ -21,7 +21,7 @@
       width: 100%;
       padding: 20px;
       background-color: #fff;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
     }
 
     table {
@@ -45,6 +45,7 @@
 
     button {
       padding: 10px;
+      margin-right: 5px;
       background-color: #4caf50;
       color: #fff;
       border: none;
@@ -69,7 +70,9 @@
     <input type="text" id="index" required>
     <label for="Reg_No">Reg No:</label>
     <input type="text" id="Reg_No" required>
-    <button type="button" onclick="addItem()">Add Item</button>
+    <!-- Hidden input for item No -->
+    <input type="hidden" id="editItemNo">
+    <button type="button" id="addItemButton" onclick="addItem()">Add Item</button>
   </form>
 
   <!-- Table to display items -->
@@ -135,7 +138,7 @@
       const editButton = document.createElement('button');
       editButton.textContent = 'Edit';
       editButton.onclick = function () {
-        editItem(item.No);
+        editItem(item.No, item.name, item.index, item.Reg_No);
       };
 
       const deleteButton = document.createElement('button');
@@ -155,23 +158,61 @@
     const index = document.getElementById('index').value;
     const Reg_No = document.getElementById('Reg_No').value;
 
-    axios.post('http://localhost:3000/items', { name, index, Reg_No })
+    // Check if it's an edit or add operation
+    const editItemNo = document.getElementById('editItemNo').value;
+
+    if (editItemNo) {
+      // Update item
+      updateItem(editItemNo, name, index, Reg_No);
+    } else {
+      // Add new item
+      axios.post('http://localhost:3000/items', { name, index, Reg_No })
+        .then(function (response) {
+          loadItems();
+          // Clear the form
+          document.getElementById('name').value = '';
+          document.getElementById('index').value = '';
+          document.getElementById('Reg_No').value = '';
+        })
+        .catch(function (error) {
+          console.error('Error adding item', error);
+        });
+    }
+  }
+
+  // Function to edit an item
+  function editItem(No, name, index, Reg_No) {
+    // Populate the form with the selected item's details
+    document.getElementById('name').value = name;
+    document.getElementById('index').value = index;
+    document.getElementById('Reg_No').value = Reg_No;
+
+    // Add a hidden input field to store the item's No
+    document.getElementById('editItemNo').value = No;
+
+    // Change the button from "Add Item" to "Update Item"
+    const addButton = document.getElementById('addItemButton');
+    addButton.textContent = 'Update Item';
+  }
+
+  // Function to update an item
+  function updateItem(No, name, index, Reg_No) {
+    axios.put(`http://localhost:3000/items/${No}`, { name, index, Reg_No })
       .then(function (response) {
         loadItems();
         // Clear the form
         document.getElementById('name').value = '';
         document.getElementById('index').value = '';
         document.getElementById('Reg_No').value = '';
+        document.getElementById('editItemNo').value = '';
+
+        // Change the button back to "Add Item"
+        const addButton = document.getElementById('addItemButton');
+        addButton.textContent = 'Add Item';
       })
       .catch(function (error) {
-        console.error('Error adding item', error);
+        console.error('Error updating item', error);
       });
-  }
-
-  // Function to edit an item
-  function editItem(No) {
-    // You can implement the edit functionality here
-    console.log('Edit item with No:', No);
   }
 
   // Function to delete an item
